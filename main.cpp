@@ -11,8 +11,8 @@
 #include <unordered_set>
 #include <vector>
 
-#include "Game.h"
-#include "GameData.h"
+#include "Game/Game.h"
+#include "GameData/GameData.h"
 
 using namespace std;
 
@@ -35,10 +35,12 @@ void AStarManhattanDistance(Game *initConf, Game *goalConf);
 void GreedyManhattan(Game *initConf, Game *goalConf);
 void GreedyMisplacedTiles(Game *initConf, Game *goalConf);
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     system("clear");
 
-    if (argc == 1 || argc > 3) {
+    if (argc == 1 || argc > 3)
+    {
         printf("Invalid number of arguments!\n");
         return 1;
     }
@@ -49,7 +51,8 @@ int main(int argc, char *argv[]) {
     Game *goalConf = new Game(SIZE);
     readConfigFile(argv[2], initConf, goalConf);
 
-    if (!checkIfSolvable(initConf, goalConf)) {
+    if (!checkIfSolvable(initConf, goalConf))
+    {
         printf("The initial configuration is not solvable!\n");
         return 1;
     }
@@ -59,12 +62,13 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-void runAlgorithm(string algorithm, Game* initConf, Game* goalConf) {
+void runAlgorithm(string algorithm, Game *initConf, Game *goalConf)
+{
     if (algorithm == "BFS")
         BFS(initConf, goalConf);
     else if (algorithm == "DFS")
         DFS(initConf, goalConf, 20, 0);
-    else if (algorithm == "IDFS") 
+    else if (algorithm == "IDFS")
         IDFS(initConf, goalConf);
     else if (algorithm == "A*-misplaced")
         AStarMisplacedTiles(initConf, goalConf);
@@ -74,18 +78,21 @@ void runAlgorithm(string algorithm, Game* initConf, Game* goalConf) {
         GreedyMisplacedTiles(initConf, goalConf);
     else if (algorithm == "Greedy-Manhattan")
         GreedyManhattan(initConf, goalConf);
-    else {
+    else
+    {
         printf("Invalid algorithm!\n");
         exit(1);
     }
 }
 
-void readConfigFile(char *confFile, Game *initConf, Game *goalConf) {
+void readConfigFile(char *confFile, Game *initConf, Game *goalConf)
+{
     // Open the file
     ifstream inputFile(confFile);
 
     // Check if the file was opened successfully
-    if (!inputFile.is_open()) {
+    if (!inputFile.is_open())
+    {
         cerr << "Error opening file " << confFile << "\n";
         exit(1);
     }
@@ -102,19 +109,23 @@ void readConfigFile(char *confFile, Game *initConf, Game *goalConf) {
     // Read the initial configuration
     vector<int> init;
     int num = 0;
-    while (ssINIT >> num) {
+    while (ssINIT >> num)
+    {
         init.push_back(num);
     }
 
     // Read the goal configuration
     vector<int> goal;
-    while (ssGOAL >> num) {
+    while (ssGOAL >> num)
+    {
         goal.push_back(num);
     }
 
     // Add the values to the board
-    for (int i = 0; i < SIZE; i++) {
-        for (int j = 0; j < SIZE; j++) {
+    for (int i = 0; i < SIZE; i++)
+    {
+        for (int j = 0; j < SIZE; j++)
+        {
             initConf->setPiece(i, j, init.front());
             goalConf->setPiece(i, j, goal.front());
 
@@ -125,11 +136,13 @@ void readConfigFile(char *confFile, Game *initConf, Game *goalConf) {
     inputFile.close();
 }
 
-bool checkIfSolvable(Game *initConf, Game *goalConf) {
+bool checkIfSolvable(Game *initConf, Game *goalConf)
+{
     return initConf->solvability() == goalConf->solvability();
 }
 
-void debugBoard(Game *initConf, Game *goalConf) {
+void debugBoard(Game *initConf, Game *goalConf)
+{
     printf("Initial configuration:\n");
     // initConf->setVisited();
     initConf->printBoard();
@@ -152,7 +165,8 @@ void debugBoard(Game *initConf, Game *goalConf) {
     // }
 }
 
-void BFS(Game *initConf, Game *goalConf) {
+void BFS(Game *initConf, Game *goalConf)
+{
     queue<Game *> q;
     q.push(initConf);
 
@@ -162,13 +176,15 @@ void BFS(Game *initConf, Game *goalConf) {
 
     GameData data;
 
-    while (!q.empty()) {
+    while (!q.empty())
+    {
         Game *cur = q.front();
         q.pop();
-        
+
         data.incrementExpandedNodes();
 
-        if (cur->compareBoards(goalConf)) {
+        if (cur->compareBoards(goalConf))
+        {
             printf("Found the goal configuration!\n");
             cur->printBoard();
             data.setPath(cur->getPath());
@@ -177,36 +193,43 @@ void BFS(Game *initConf, Game *goalConf) {
         }
 
         vector<Game *> possibleMoves = cur->possibleMoves();
-        for (int i = 0; i < possibleMoves.size(); i++) {
+        for (int i = 0; i < possibleMoves.size(); i++)
+        {
             Game *nextMove = possibleMoves[i];
-            if (visited.find(nextMove->getId()) == visited.end()) {
+            if (visited.find(nextMove->getId()) == visited.end())
+            {
                 visited.insert(nextMove->getId());
                 q.push(nextMove);
                 data.incrementMemoryUsed();
-            } else {
+            }
+            else
+            {
                 delete nextMove;
             }
         }
     }
 }
 
-bool DFS(Game *initConf, Game *goalConf, int depth, int flag) {
-    stack<pair<Game *, int>> s;  // store current depth of each node
+bool DFS(Game *initConf, Game *goalConf, int depth, int flag)
+{
+    stack<pair<Game *, int>> s; // store current depth of each node
     s.push(make_pair(initConf, 0));
-    
-    initConf->hashMaker(); 
+
+    initConf->hashMaker();
     unordered_set<size_t> visited;
     visited.insert(initConf->getId());
-    
+
     GameData data;
-    
-    while (!s.empty()) {
+
+    while (!s.empty())
+    {
         auto cur = s.top();
         s.pop();
-        
+
         data.incrementExpandedNodes();
 
-        if (cur.first->compareBoards(goalConf)) {
+        if (cur.first->compareBoards(goalConf))
+        {
             printf("Found the goal configuration!\n");
             cur.first->printBoard();
             data.setPath(cur.first->getPath());
@@ -214,11 +237,13 @@ bool DFS(Game *initConf, Game *goalConf, int depth, int flag) {
             return true;
         }
 
-        if (cur.second >= depth && flag == 0) {
+        if (cur.second >= depth && flag == 0)
+        {
             continue;
         }
 
-        if (cur.second >= depth && flag == 1) {
+        if (cur.second >= depth && flag == 1)
+        {
             visited.clear();
             continue;
         }
@@ -226,39 +251,48 @@ bool DFS(Game *initConf, Game *goalConf, int depth, int flag) {
         vector<Game *> possibleMoves = cur.first->possibleMoves();
 
         // Add the child nodes to the stack in a reverse order, so that the algorithm explores them in a depth-first order
-        for (int i = possibleMoves.size() - 1; i >= 0; i--) {
+        for (int i = possibleMoves.size() - 1; i >= 0; i--)
+        {
             Game *nextMove = possibleMoves[i];
-            if (visited.find(nextMove->getId()) == visited.end()) {
+            if (visited.find(nextMove->getId()) == visited.end())
+            {
                 visited.insert(nextMove->getId());
                 s.push(make_pair(nextMove, cur.second + 1));
                 data.incrementMemoryUsed();
-            } else {
+            }
+            else
+            {
                 delete nextMove;
             }
         }
     }
     if (flag == 0)
-        DFS(initConf, goalConf, depth+1, 0);
+        DFS(initConf, goalConf, depth + 1, 0);
     return false;
 }
 
-void IDFS(Game *initConf, Game *goalConf) {
+void IDFS(Game *initConf, Game *goalConf)
+{
     int i = 0;
     cout << "Currently exploring depth 0\n";
-    while (!DFS(initConf, goalConf, i, 1)) {
+    while (!DFS(initConf, goalConf, i, 1))
+    {
         cout << "Currently exploring depth " << (++i) << '\n';
     }
     return;
 }
 
-void AStarMisplacedTiles(Game *initConf, Game *goalConf) {
+void AStarMisplacedTiles(Game *initConf, Game *goalConf)
+{
     // priority_queue<Game*, vector<Game*>, function<bool(Game*, Game*)>> pq(
     //     [](Game* game1, Game* game2) -> bool {
     //         return game1->getF() > game2->getF();
     //     }
     // );
-    struct AStarMisplacedTilesCompare {
-        bool operator()(Game *game1, Game *game2) const {
+    struct AStarMisplacedTilesCompare
+    {
+        bool operator()(Game *game1, Game *game2) const
+        {
             return game1->getF() > game2->getF();
         }
     };
@@ -273,13 +307,15 @@ void AStarMisplacedTiles(Game *initConf, Game *goalConf) {
 
     GameData data;
 
-    while (!pq.empty()) {
+    while (!pq.empty())
+    {
         Game *cur = pq.top();
         pq.pop();
 
         data.incrementExpandedNodes();
 
-        if (cur->compareBoards(goalConf)) {
+        if (cur->compareBoards(goalConf))
+        {
             printf("Found the goal configuration!\n");
             cur->printBoard();
             data.setPath(cur->getPath());
@@ -288,7 +324,8 @@ void AStarMisplacedTiles(Game *initConf, Game *goalConf) {
         }
 
         vector<Game *> possibleMoves = cur->possibleMoves();
-        for (int i = 0; i < possibleMoves.size(); i++) {
+        for (int i = 0; i < possibleMoves.size(); i++)
+        {
             Game *nextMove = possibleMoves[i];
 
             // Calculate the misplaced tiles heuristic for the next move
@@ -305,20 +342,26 @@ void AStarMisplacedTiles(Game *initConf, Game *goalConf) {
             nextMove->setF(f);
 
             // Check if the new node has already been visited
-            if (visited.find(nextMove->getId()) == visited.end()) {
+            if (visited.find(nextMove->getId()) == visited.end())
+            {
                 visited.insert(nextMove->getId());
                 pq.push(nextMove);
                 data.incrementMemoryUsed();
-            } else {
+            }
+            else
+            {
                 delete nextMove;
             }
         }
     }
 }
 
-void AStarManhattanDistance(Game *initConf, Game *goalConf) {
-    struct AStarManhattanDistanceCompare {
-        bool operator()(Game *game1, Game *game2) const {
+void AStarManhattanDistance(Game *initConf, Game *goalConf)
+{
+    struct AStarManhattanDistanceCompare
+    {
+        bool operator()(Game *game1, Game *game2) const
+        {
             return game1->getF() > game2->getF();
         }
     };
@@ -333,13 +376,15 @@ void AStarManhattanDistance(Game *initConf, Game *goalConf) {
 
     GameData data;
 
-    while (!pq.empty()) {
+    while (!pq.empty())
+    {
         Game *cur = pq.top();
         pq.pop();
 
         data.incrementExpandedNodes();
 
-        if (cur->compareBoards(goalConf)) {
+        if (cur->compareBoards(goalConf))
+        {
             printf("Found the goal configuration!\n");
             cur->printBoard();
             data.setPath(cur->getPath());
@@ -348,7 +393,8 @@ void AStarManhattanDistance(Game *initConf, Game *goalConf) {
         }
 
         vector<Game *> possibleMoves = cur->possibleMoves();
-        for (int i = 0; i < possibleMoves.size(); i++) {
+        for (int i = 0; i < possibleMoves.size(); i++)
+        {
             Game *nextMove = possibleMoves[i];
 
             int g = cur->getG() + 1;
@@ -360,20 +406,26 @@ void AStarManhattanDistance(Game *initConf, Game *goalConf) {
             int f = g + h;
             nextMove->setF(f);
 
-            if (visited.find(nextMove->getId()) == visited.end()) {
+            if (visited.find(nextMove->getId()) == visited.end())
+            {
                 visited.insert(nextMove->getId());
                 pq.push(nextMove);
                 data.incrementMemoryUsed();
-            } else {
+            }
+            else
+            {
                 delete nextMove;
             }
         }
     }
 }
 
-void GreedyManhattan(Game *initConf, Game *goalConf) {
-    struct GreedyManhattanCompare {
-        bool operator()(Game *game1, Game *game2) const {
+void GreedyManhattan(Game *initConf, Game *goalConf)
+{
+    struct GreedyManhattanCompare
+    {
+        bool operator()(Game *game1, Game *game2) const
+        {
             return game1->getH() > game2->getH();
         }
     };
@@ -388,13 +440,15 @@ void GreedyManhattan(Game *initConf, Game *goalConf) {
 
     GameData data;
 
-    while (!pq.empty()) {
+    while (!pq.empty())
+    {
         Game *cur = pq.top();
         pq.pop();
 
         data.incrementExpandedNodes();
 
-        if (cur->compareBoards(goalConf)) {
+        if (cur->compareBoards(goalConf))
+        {
             printf("Found the goal configuration!\n");
             cur->printBoard();
             data.setPath(cur->getPath());
@@ -403,26 +457,33 @@ void GreedyManhattan(Game *initConf, Game *goalConf) {
         }
 
         vector<Game *> possibleMoves = cur->possibleMoves();
-        for (int i = 0; i < possibleMoves.size(); i++) {
+        for (int i = 0; i < possibleMoves.size(); i++)
+        {
             Game *nextMove = possibleMoves[i];
 
             int h = nextMove->manhattanDistance(goalConf);
             nextMove->setH(h);
 
-            if (visited.find(nextMove->getId()) == visited.end()) {
+            if (visited.find(nextMove->getId()) == visited.end())
+            {
                 visited.insert(nextMove->getId());
                 pq.push(nextMove);
                 data.incrementMemoryUsed();
-            } else {
+            }
+            else
+            {
                 delete nextMove;
             }
         }
     }
 }
 
-void GreedyMisplacedTiles(Game *initConf, Game *goalConf) {
-    struct GreedyMisplacedTilesCompare {
-        bool operator()(Game *game1, Game *game2) const {
+void GreedyMisplacedTiles(Game *initConf, Game *goalConf)
+{
+    struct GreedyMisplacedTilesCompare
+    {
+        bool operator()(Game *game1, Game *game2) const
+        {
             return game1->getH() > game2->getH();
         }
     };
@@ -437,13 +498,15 @@ void GreedyMisplacedTiles(Game *initConf, Game *goalConf) {
 
     GameData data;
 
-    while (!pq.empty()) {
+    while (!pq.empty())
+    {
         Game *cur = pq.top();
         pq.pop();
 
         data.incrementExpandedNodes();
 
-        if (cur->compareBoards(goalConf)) {
+        if (cur->compareBoards(goalConf))
+        {
             printf("Found the goal configuration!\n");
             cur->printBoard();
             data.setPath(cur->getPath());
@@ -452,17 +515,21 @@ void GreedyMisplacedTiles(Game *initConf, Game *goalConf) {
         }
 
         vector<Game *> possibleMoves = cur->possibleMoves();
-        for (int i = 0; i < possibleMoves.size(); i++) {
+        for (int i = 0; i < possibleMoves.size(); i++)
+        {
             Game *nextMove = possibleMoves[i];
 
             int h = nextMove->misplacedTiles(goalConf);
             nextMove->setH(h);
 
-            if (visited.find(nextMove->getId()) == visited.end()) {
+            if (visited.find(nextMove->getId()) == visited.end())
+            {
                 visited.insert(nextMove->getId());
                 pq.push(nextMove);
                 data.incrementMemoryUsed();
-            } else {
+            }
+            else
+            {
                 delete nextMove;
             }
         }
